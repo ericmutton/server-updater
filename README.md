@@ -18,7 +18,9 @@ A Minecraft server updater made with Java
 ```batch
 java -jar server-updater.jar <includes> <dir>
 ```
+## How to Use
 
+* Questions may be answered using `yY` or `nN`
 
 ## Libraries
 
