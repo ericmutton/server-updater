@@ -1,2 +1,34 @@
 # server-updater
-A Minecraft server updater
+A Minecraft server updater made with Java
+
+## Getting Started
+
+### Prerequisites
+
+* [Java 8](https://www.java.com/en/download/manual.jsp)
+
+* [Minecraft server](https://minecraft.net)
+
+```
+Give examples
+```
+
+## How to Run
+
+`includes`: `--snapshot` or `--release`
+
+`dir`: directory of parent folder of server jar
+
+```batch
+java -jar server-updater.jar <includes> <dir>
+```
+
+
+## Libraries
+
+* json-simple-1.1.1 - Used for JSON support
+* commons-io-2.6 - Used to download files
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
