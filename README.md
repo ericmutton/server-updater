@@ -9,10 +9,6 @@ A Minecraft server updater made with Java
 
 * [Minecraft server](https://minecraft.net)
 
-```
-Give examples
-```
-
 ## How to Run
 
 `includes`: `--snapshot` or `--release`
@@ -26,8 +22,8 @@ java -jar server-updater.jar <includes> <dir>
 
 ## Libraries
 
-* json-simple-1.1.1 - Used for JSON support
-* commons-io-2.6 - Used to download files
+* [json-simple-1.1.1](https://code.google.com/archive/p/json-simple/downloads) - Used for JSON support
+* [commons-io-2.6](http://commons.apache.org/proper/commons-io/download_io.cgi) - Used to download files
 
 ## License
 
