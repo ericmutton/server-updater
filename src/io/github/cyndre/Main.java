@@ -39,7 +39,7 @@ public class Main
                         latest = (JSONObject) latest.get("server");
                         URL ejf = new URL(latest.get("url").toString());
                         System.out.println("Downloading latest "+version+". . .");
-                        FileUtils.copyURLToFile(ejf, new File(args[1]+"\\server.jar"));
+                        FileUtils.copyURLToFile(ejf, new File(args[1]+"/server.jar"));
                         System.out.println("Downloaded latest "+version+" from "+ejf);
                     }
                 }
@@ -83,7 +83,7 @@ public class Main
         String version = "";
         try
         {
-            File log = new File(dir+"\\logs\\latest.log");
+            File log = new File(dir+"/logs/latest.log");
             BufferedReader br = new BufferedReader(new FileReader(log));
             String line;
             while (!(line = br.readLine()).contains("Starting minecraft server version"));
