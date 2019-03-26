@@ -3,13 +3,11 @@ package io.github.cyndre;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.json.simple.JSONArray;
 import org.apache.commons.io.FileUtils;
-
 import java.util.Scanner;
 
 public class Main
@@ -19,23 +17,27 @@ public class Main
         Scanner input = new Scanner(System.in);
         System.out.println("Would you like to check for updates? ");
         if (input.next().toLowerCase().equals("y")) {
-            check:
             try
             {
                 JSONObject manifest = JSONFromWeb("https://launchermeta.mojang.com/mc/game/version_manifest.json");
+                String type = args[0].substring(2);
+                JSONObject latestName = (JSONObject) manifest.get("latest");
+                String current = version(args[1]);
                 JSONArray versions = (JSONArray) manifest.get("versions");
-                JSONObject latest = (JSONObject) versions.get(0);
-                String currentVersion = version(args[1]);
-                if (
-                        !(latest.get("type").equals("snapshot") && !args[0].equals("--snapshot"))
-                                && !currentVersion.equals(latest.get("id"))
-                )
+                if (!current.equals(latestName.get(type)))
                 {
-                    String version = latest.get("type")+" "+latest.get("id");
-                    System.out.println("Would you like to update the server from "+currentVersion+" to the latest "+version+"? ");
+                    int i;
+                    String version = "";
+                    for (i = 0; i < versions.size(); i++)
+                    {
+                        version = (String) ((JSONObject) versions.get(i)).get("type");
+                        if (version.equals(type)) break;
+                    }
+                    JSONObject latest = (JSONObject) versions.get(i);
+                    version += " "+latest.get("id");
+                    System.out.println("Would you like to update the server from "+current+" to the latest "+version+"? ");
                     if (input.next().toLowerCase().equals("y")) {
-                        latest = JSONFromWeb(latest.get("url").toString());
-                        latest = (JSONObject) latest.get("downloads");
+                        latest = (JSONObject) (JSONFromWeb(latest.get("url").toString())).get("downloads");
                         latest = (JSONObject) latest.get("server");
                         URL ejf = new URL(latest.get("url").toString());
                         System.out.println("Downloading latest "+version+". . .");
@@ -59,7 +61,7 @@ public class Main
 
     private static JSONObject JSONFromWeb(String url)
     {
-        JSONObject json;
+        JSONObject json = new JSONObject();
         JSONParser parser = new JSONParser();
         try
         {
@@ -68,14 +70,13 @@ public class Main
             BufferedReader br = new BufferedReader(new InputStreamReader(urlc.getInputStream()));
             json = (JSONObject) parser.parse(br.readLine());
             br.close();
-            return json;
         }
         catch (ParseException | IOException e)
         {
             System.out.println("No updates could be retrieved. "+e.getMessage());
             e.printStackTrace();
         }
-        return new JSONObject();
+        return json;
     }
 
     private static String version(String dir)
@@ -87,8 +88,7 @@ public class Main
             BufferedReader br = new BufferedReader(new FileReader(log));
             String line;
             while (!(line = br.readLine()).contains("Starting minecraft server version"));
-            String[] current = line.split(" ");
-            version = current[current.length-1];
+            version = line.substring(67);
             br.close();
         }
         catch (IOException e)
