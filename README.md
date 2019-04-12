@@ -5,8 +5,6 @@ A Minecraft server updater made with Java. Reads a server's `latest.log` file to
 
 ### Prerequisites
 
-* [Java 8](https://www.java.com/en/download/manual.jsp)
-
 * [Minecraft server](https://www.minecraft.net/en-us/download/server)
 
 ## How to Run
