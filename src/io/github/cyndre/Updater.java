@@ -14,9 +14,7 @@ import org.apache.commons.io.FileUtils;
 
 public class Updater
 {
-    private static String release;
-    private static String filepath;
-    private static String versionId;
+    private static String release, filepath, versionId;
     private static JSONObject versionObj;
 
     public Updater(String type, String path)
@@ -88,12 +86,12 @@ public class Updater
         return json;
     }
 
-    public static String localVersion()
+    public String localVersion()
     {
         String line = "[00:00:00] [Server thread/INFO]: Starting minecraft server version unknown";
         try
         {
-            File log = new File(getFilepath() +"/logs/latest.log");
+            File log = new File(getFilepath()+"/logs/latest.log");
             BufferedReader br = new BufferedReader(new FileReader(log));
             while (!(line = br.readLine()).contains("[Server thread/INFO]: Starting minecraft server version"));
             br.close();
