@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.time.LocalTime;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -35,7 +37,7 @@ public class Updater
         {
             if (i == versions.size())
             {
-                System.out.println("Could not find version "+version+"!");
+                System.out.println(timestamp()+" Could not find version "+version+"!");
                 break;
             }
             setVersionObj((JSONObject) versions.get(i));
@@ -56,13 +58,13 @@ public class Updater
             setVersionObj((JSONObject) (JSONFromWeb(url)).get("downloads"));
             setVersionObj((JSONObject) getVersionObj().get("server"));
             URL ejf = new URL(getVersionObj().get("url").toString());
-            System.out.println("Downloading "+ getVersionId() +". . .");
+            System.out.println(timestamp()+" [updater/WARN]: Downloading "+ getVersionId() +". . .");
             FileUtils.copyURLToFile(ejf, new File(getFilepath() +"/server.jar"));
-            System.out.println("Downloaded "+ getVersionId() +" from "+ejf);
+            System.out.println(timestamp()+" [updater/INFO]: Downloaded "+ getVersionId() +" from "+ejf);
         }
         catch (IOException e)
         {
-            System.out.println("Could not finish updating. "+e.getMessage());
+            System.out.println(timestamp()+"Could not finish updating. "+e.getMessage());
             e.printStackTrace();
         }
     }
@@ -101,6 +103,16 @@ public class Updater
             e.printStackTrace();
         }
         return line.substring(67);
+    }
+
+    public static String timestamp()
+    {
+        String time = LocalTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString();
+        while (time.length() < 8)
+        {
+            time += ":00";
+        }
+        return "["+time+"]";
     }
 
     public static String getRelease()
