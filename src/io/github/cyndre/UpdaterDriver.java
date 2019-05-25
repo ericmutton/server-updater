@@ -1,16 +1,16 @@
 package io.github.cyndre;
 
-import java.time.LocalTime;
 import java.util.Scanner;
 
 public class UpdaterDriver
 {
     public static void main(String[] args)
     {
-        String version = null, release = "release", argument = null, value = null;
-        for (int path = 0; path < args.length; path++)
+        boolean update = false;
+        String version = null, release = "release", value = null, filepath = null;
+        Updater mc = new Updater(release);
+        for (String argument: args)
         {
-            argument = args[path];
             if (argument.substring(0,2).equals("--"))
             {
                 argument = argument.substring(2);
@@ -32,55 +32,47 @@ public class UpdaterDriver
                         version = value;
                         break;
                     }
-
+                    case "auto-update":
+                    {
+                        update = true;
+                        break;
+                    }
                     default:
                     {
-                        System.out.println(timestamp()+" [updater/WARN]: Ignoring unknown switch: "+argument);
+                        mc.print("WARN","Ignoring unknown argument: --"+argument);
                     }
                 }
             }
             else
             {
+                filepath = argument;
                 break;
             }
         }
-        Updater mc = new Updater(release, argument);
-
+        mc.setRelease(release);
+        mc.setFilepath(filepath);
         String current = mc.localVersion();
+        version = mc.fetchVersion(version);
         if (current.equals(version))
         {
-            System.out.println(timestamp()+" [updater/WARN]: Already running version "+version+"!");
-            return;
+            mc.print("WARN","Already running version "+current+"!");
         }
-        Scanner input = new Scanner(System.in);
-        if (release != "version")
+        else if (update)
         {
-            System.out.print(timestamp()+" [updater/INFO]: Would you like to check for updates? ");
+            mc.downloadVersion();
         }
-        if (input.next().toLowerCase().equals("y") || release == "version")
+        else
         {
-            version = mc.fetchVersion(version);
-            if (current.equals(version))
-            {
-                System.out.println(timestamp()+" [updater/WARN]: Already running version "+version+"!");
-                return;
-            }
-            System.out.print(timestamp()+" [updater/INFO]: Would you like to update the server from "+current+" to "+version+"? ");
+            Scanner input = new Scanner(System.in);
+            mc.print("INFO","Would you like to check for updates? ");
             if (input.next().toLowerCase().equals("y"))
             {
-                mc.downloadVersion();
+                mc.print("INFO","Would you like to update the server from "+current+" to "+version+"? ");
+                if (input.next().toLowerCase().equals("y"))
+                {
+                    mc.downloadVersion();
+                }
             }
         }
-        System.out.println(timestamp()+" [updater/INFO]: Starting server. . .");
-    }
-
-    public static String timestamp()
-    {
-        String time = LocalTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString();
-        while (time.length() < 8)
-        {
-            time += ":00";
-        }
-        return "["+time+"]";
     }
 }
