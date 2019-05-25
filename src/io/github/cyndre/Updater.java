@@ -1,17 +1,20 @@
 package io.github.cyndre;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.zip.ZipFile;
 import java.time.LocalTime;
-
+import java.time.temporal.ChronoUnit;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.json.simple.JSONArray;
 import org.apache.commons.io.FileUtils;
 
 public class Updater
@@ -19,17 +22,16 @@ public class Updater
     private static String release, filepath, versionId;
     private static JSONObject versionObj;
 
-    public Updater(String type, String path)
+    public Updater(String type)
     {
         setRelease(type);
-        setFilepath(path);
     }
 
-    public static String fetchVersion(String version)
+    public String fetchVersion(String version)
     {
         JSONObject manifest = JSONFromWeb("https://launchermeta.mojang.com/mc/game/version_manifest.json");
         JSONArray versions = (JSONArray) manifest.get("versions");
-        if (getRelease().equals("release") || getRelease().equals("snapshot"))
+        if (!getRelease().equals("version"))
         {
             version = ((JSONObject) manifest.get("latest")).get(getRelease()).toString();
         }
@@ -50,7 +52,7 @@ public class Updater
         return getVersionId();
     }
 
-    public static void downloadVersion()
+    public void downloadVersion()
     {
         try
         {
@@ -58,13 +60,13 @@ public class Updater
             setVersionObj((JSONObject) (JSONFromWeb(url)).get("downloads"));
             setVersionObj((JSONObject) getVersionObj().get("server"));
             URL ejf = new URL(getVersionObj().get("url").toString());
-            System.out.println(timestamp()+" [updater/WARN]: Downloading "+ getVersionId() +". . .");
+            print("WARN","Downloading "+getVersionId()+" . . .\n");
             FileUtils.copyURLToFile(ejf, new File(getFilepath() +"/server.jar"));
-            System.out.println(timestamp()+" [updater/INFO]: Downloaded "+ getVersionId() +" from "+ejf);
+            print("INFO","Downloaded "+getVersionId()+" from "+ejf+"\n");
         }
         catch (IOException e)
         {
-            System.out.println(timestamp()+"Could not finish updating. "+e.getMessage());
+            print("WARN","Could not finish updating. "+e.getMessage());
             e.printStackTrace();
         }
     }
@@ -75,14 +77,14 @@ public class Updater
         JSONParser parser = new JSONParser();
         try
         {
-            java.io.InputStream is = new URL(url).openConnection().getInputStream();
+            InputStream is = new URL(url).openConnection().getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             json = (JSONObject) parser.parse(br.readLine());
             br.close();
         }
         catch (ParseException | IOException e)
         {
-            System.out.println("No updates could be retrieved. "+e.getMessage());
+            print("WARN","No updates could be retrieved. "+e.getMessage());
             e.printStackTrace();
         }
         return json;
@@ -90,29 +92,57 @@ public class Updater
 
     public String localVersion()
     {
-        String line = "[00:00:00] [Server thread/INFO]: Starting minecraft server version unknown";
-        try
+        String version;
+        JSONParser parser = new JSONParser();
+        try (ZipFile zip = new ZipFile(getFilepath()+"/server.jar"))
         {
-            File log = new File(getFilepath()+"/logs/latest.log");
-            BufferedReader br = new BufferedReader(new FileReader(log));
-            while (!(line = br.readLine()).contains("[Server thread/INFO]: Starting minecraft server version"));
-            br.close();
+            InputStream is = zip.getInputStream(zip.getEntry("version.json"));
+            version = new String(readFully(is));
+            JSONObject json = (JSONObject) parser.parse(version);
+            version = json.get("name").toString();
         }
-        catch (IOException e)
+        catch (IOException | ParseException | NullPointerException e)
         {
-            e.printStackTrace();
+            print("WARN","ENTERING PRE-1.14 COMPATIBILITY MODE\n");
+            String line = "[00:00:00] [Server thread/INFO]: Starting minecraft server version unknown";
+            try (BufferedReader br = new BufferedReader(new FileReader(new File(getFilepath()+"/logs/latest.log"))))
+            {
+                while (!(line = br.readLine()).contains("[Server thread/INFO]: Starting minecraft server version"));
+            }
+            catch (IOException ex)
+            {
+                print("WARN","No local version could be found. "+ex.getMessage());
+                ex.printStackTrace();
+            }
+            return line.substring(67);
         }
-        return line.substring(67);
+        return version;
+    }
+
+    byte[] readFully(InputStream in) throws IOException //Java 8 compatibility for Java 9+ usage of readAllBytes()
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[300];
+        int r;
+        while((r = in.read(buffer)) != -1)
+        {
+            baos.write(buffer, 0, r);
+        }
+        return baos.toByteArray();
     }
 
     public static String timestamp()
     {
-        String time = LocalTime.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString();
-        while (time.length() < 8)
+        StringBuffer sb = new StringBuffer(LocalTime.now().truncatedTo(ChronoUnit.SECONDS).toString());
+        while (sb.length() < 8)
         {
-            time += ":00";
+            sb.append(":00");
         }
-        return "["+time+"]";
+        return "["+sb+"]";
+    }
+    public static void print(String type, String content)
+    {
+        System.out.print(timestamp()+" [updater/"+type+"]: "+content);
     }
 
     public static String getRelease()
@@ -120,38 +150,38 @@ public class Updater
         return release;
     }
 
-    public static void setRelease(String release)
+    public static void setRelease(String type)
     {
-        Updater.release = release;
+        release = type;
     }
 
-    public static String getFilepath()
+    private static String getFilepath()
     {
         return filepath;
     }
 
-    public static void setFilepath(String filepath)
+    public static void setFilepath(String path)
     {
-        Updater.filepath = filepath;
+        filepath = path;
     }
 
-    public static String getVersionId()
+    private static String getVersionId()
     {
         return versionId;
     }
 
-    public static void setVersionId(String versionId)
+    private static void setVersionId(String id)
     {
-        Updater.versionId = versionId;
+        versionId = id;
     }
 
-    public static JSONObject getVersionObj()
+    private static JSONObject getVersionObj()
     {
         return versionObj;
     }
 
-    public static void setVersionObj(JSONObject versionObj)
+    private static void setVersionObj(JSONObject obj)
     {
-        Updater.versionObj = versionObj;
+        versionObj = obj;
     }
 }

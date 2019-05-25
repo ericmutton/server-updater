@@ -1,5 +1,5 @@
 # server-updater
-A Minecraft server updater made with Java. Reads `logs/latest.log` file to find server version then checks for newer versions. Can optionally check, download, and then update the vanilla Minecraft server Jar executable.
+A Minecraft server updater made with Java. Reads `server.jar` or `logs/latest.log` file to find server version then checks for newer versions. Can optionally check, download, and then update the vanilla Minecraft server Jar executable.
 
 ## Getting Started
 
