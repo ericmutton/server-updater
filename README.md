@@ -9,13 +9,13 @@ A Minecraft server updater made with Java. Reads `server.jar` or `logs/latest.lo
 
 ## How to Run
 
-### CLI Arguments
-OPTIONS
+### CLI Usage
+## OPTIONS
 `includes` `--snapshot` or `--release` or `--version="id"`. `<includes>` defaults to `--release`.
 `auto`:`--auto-update`
-ARGUMENTS
+## ARGUMENTS
 `dir`: directory of parent folder of server jar.
-SYNOPSIS
+## SYNOPSIS
 ```bash
 java -jar server-updater.jar [options] dir
 ```
